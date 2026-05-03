@@ -564,6 +564,134 @@ const ReadingLibrary = memo(() => {
 });
 
 // -------------------------------------------------------------
+// Election Journey Component (7-Stage Flow)
+// -------------------------------------------------------------
+const ELECTION_STAGES = [
+  { id: 0, emoji: '📢', name: 'Announcement', day: 'Day 0',
+    simple: 'The Election Commission announces that an election will happen. They pick the dates and set the rules everyone must follow.',
+    example: 'Example: "Elections for the State Assembly will be held on May 20th" — this is the official starting signal.',
+    question: 'Why do you think it is important to announce election dates early?',
+    deep: 'The Election Commission of India (ECI) issues a formal notification triggering the "Model Code of Conduct" (MCC). From this moment, the ruling government cannot announce new schemes, make promises, or use public funds for campaigning. This ensures a level playing field. The MCC covers: (a) General conduct of parties, (b) Meetings & processions, (c) Polling day rules, (d) Use of official machinery, (e) Election manifestos.' },
+  { id: 1, emoji: '📝', name: 'Nomination', day: 'Day 2',
+    simple: 'People who want to become leaders must officially sign up. They fill out forms and submit them to the election office.',
+    example: 'Example: A teacher who wants to become an MLA goes to the election office, fills Form 2A, and pays a small deposit.',
+    question: 'Should anyone be allowed to stand for election, or should there be rules? Why?',
+    deep: 'Candidates file nomination papers (Form 2A for Assembly, Form 2B for Parliament). They must declare: criminal cases, assets & liabilities, educational qualifications, and income sources. A security deposit is required (₹10,000 for Assembly, ₹25,000 for Parliament). If a candidate gets less than 1/6th of total votes, they lose this deposit. Scrutiny of nominations happens within 2 days, and candidates can withdraw within 2 days after scrutiny.' },
+  { id: 2, emoji: '📣', name: 'Campaigning', day: 'Day 6',
+    simple: 'Candidates travel around their area, talk to people, and explain their plans. They hold rallies, put up posters, and share their ideas.',
+    example: 'Example: A candidate visits schools and hospitals, listens to problems, and promises to fix the roads.',
+    question: 'How can voters tell the difference between real promises and empty promises?',
+    deep: 'Campaigning rules: (a) No appealing to religion, caste, or community for votes. (b) No bribing voters with money, gifts, or liquor. (c) Campaign spending limits: ₹40 lakh for Parliament, ₹28 lakh for Assembly. (d) Every rupee spent must be accounted for. (e) No campaigning within 100m of polling stations. (f) No loudspeakers after 10 PM. Violation of any rule can lead to disqualification.' },
+  { id: 3, emoji: '🤫', name: 'Silence Period', day: 'Day 18',
+    simple: 'Campaigning stops completely 48 hours before voting. This quiet time lets voters think calmly without pressure.',
+    example: 'Example: No rallies, no campaign messages on TV, no posters — just silence so you can make up your own mind.',
+    question: 'Why might a quiet period help voters make better decisions?',
+    deep: 'The 48-hour "silence period" (also called "cooling off period") is mandated under Section 126 of the Representation of the People Act, 1951. During this period: (a) No public meetings or rallies. (b) No media advertisements. (c) No opinion polls or exit polls can be published. (d) Distribution of liquor is strictly banned. This prevents last-minute emotional manipulation and gives voters space for rational decision-making.' },
+  { id: 4, emoji: '🗳️', name: 'Voting', day: 'Day 20',
+    simple: 'This is the big day! Voters go to polling stations, show their ID, and press the button on the EVM to cast their secret vote.',
+    example: 'Example: You walk in, show your Voter ID, get ink on your finger, go behind the curtain, press the button next to your chosen candidate, and leave. It takes 5 minutes!',
+    question: 'What makes voting both secure and fair for every citizen?',
+    deep: 'Voting process: (a) Voter identity verified via Voter ID/Aadhaar/Passport. (b) Indelible ink applied to left index finger (cannot be washed for 48 hours — prevents double voting). (c) EVM records vote electronically. (d) VVPAT machine prints a paper slip showing the candidate\'s name and symbol — visible for 7 seconds. (e) Each EVM can record max 5 votes per minute. (f) Booth-level officers, micro-observers, and CCTV cameras monitor the process. (g) Polling hours: typically 7 AM to 6 PM.' },
+  { id: 5, emoji: '📊', name: 'Counting', day: 'Day 21',
+    simple: 'All the votes are counted carefully in a secure building. Officials open each EVM and record the numbers. The candidate with the most votes wins!',
+    example: 'Example: If Candidate A gets 50,000 votes and Candidate B gets 45,000 votes, Candidate A wins that seat.',
+    question: 'Why is it important that counting happens in public view with observers?',
+    deep: 'Counting process: (a) EVMs stored in strong rooms under 24/7 armed guard and CCTV. (b) Counting starts at 8 AM on counting day. (c) Each table has a counting supervisor, micro-observer, and agents from each candidate. (d) Postal ballots counted first. (e) EVM results displayed round by round on a public display board. (f) VVPAT verification: 5 randomly selected booths per constituency have their paper slips physically counted to verify EVM accuracy. (g) Results announced constituency by constituency.' },
+  { id: 6, emoji: '🏛️', name: 'Government Formation', day: 'Day 24',
+    simple: 'The party that wins the most seats gets to form the government. Their leader becomes the Chief Minister (state) or Prime Minister (country).',
+    example: 'Example: If Party X wins 150 out of 288 seats (more than half), their leader is invited by the Governor to form the state government.',
+    question: 'What happens if no single party wins enough seats to form a government?',
+    deep: 'Government formation rules: (a) Simple majority required (50% + 1 seats). (b) If no party gets majority, the Governor/President invites the largest party to prove majority on the floor of the house. (c) Coalitions: multiple parties can join together to reach majority (this is called a "coalition government"). (d) If coalition fails, a "Hung Assembly" is declared and fresh elections may be called. (e) The leader must win a "Vote of Confidence" within 30 days of taking office. (f) Opposition leader with most seats becomes "Leader of Opposition" — a constitutional position.' },
+];
+
+const ElectionJourney = memo(() => {
+  const [activeStage, setActiveStage] = useState(0);
+  const [viewMode, setViewMode] = useState('simple'); // simple, deep, quiz
+  const stage = ELECTION_STAGES[activeStage];
+
+  return (
+    <div className="max-w-[1140px] mx-auto px-6" role="region" aria-label="Election Journey">
+      <div className="border-b-4 border-[#111] pb-8 mb-12">
+        <div className="text-[12px] tracking-[0.2em] text-[#ff3b30] mb-4 font-black font-mono">MODULE 06</div>
+        <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-4 text-white uppercase">Election Journey</h2>
+        <p className="text-lg text-zinc-400 max-w-[600px] font-mono">Follow the complete election process from Day 0 to Government Formation — step by step.</p>
+      </div>
+
+      {/* Stage Navigator */}
+      <div className="border-2 border-[#222] bg-[#000] p-6 mb-8 shadow-[8px_8px_0px_#111]">
+        <div className="text-[10px] tracking-[0.2em] text-zinc-500 mb-4 font-bold font-mono uppercase">Election Flow — Click any stage to jump directly</div>
+        <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
+          {ELECTION_STAGES.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => { setActiveStage(s.id); setViewMode('simple'); }}
+              className={`p-3 border-2 text-center transition-all ${activeStage === s.id ? 'border-[#ff3b30] bg-[#111] scale-105' : 'border-[#222] bg-[#050505] hover:border-[#333]'}`}
+            >
+              <div className="text-2xl mb-1">{s.emoji}</div>
+              <div className={`text-[11px] font-mono font-black ${activeStage === s.id ? 'text-white' : 'text-zinc-500'}`}>{s.name}</div>
+              <div className="text-[9px] text-zinc-600 font-mono">{s.day}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Learning Console */}
+      <div className="border-2 border-[#222] bg-[#000] shadow-[8px_8px_0px_#111] mb-12">
+        <div className="flex items-center justify-between border-b-2 border-[#222] p-4">
+          <div className="text-[10px] tracking-[0.2em] text-zinc-500 font-bold font-mono uppercase">Learning Console</div>
+          <div className="flex gap-2">
+            {['simple', 'deep', 'quiz'].map((m) => (
+              <button key={m} onClick={() => setViewMode(m)} className={`px-3 py-1 text-[10px] font-mono font-black tracking-widest uppercase border ${viewMode === m ? 'bg-[#ff3b30] text-black border-[#ff3b30]' : 'border-[#333] text-zinc-500 hover:border-zinc-400'}`}>{m === 'simple' ? 'Simple' : m === 'deep' ? 'Deep Dive' : 'Quiz'}</button>
+            ))}
+          </div>
+        </div>
+
+        <div className="p-8">
+          <h3 className="text-3xl font-black text-white uppercase mb-2">[{stage.name} {stage.emoji}]</h3>
+          <div className="text-[10px] text-zinc-600 font-mono mb-6">{stage.day} of the Election Cycle</div>
+
+          {viewMode === 'simple' && (
+            <div className="space-y-6">
+              <p className="text-[16px] text-zinc-300 leading-relaxed font-sans">{stage.simple}</p>
+              <div className="bg-[#111] border-l-4 border-[#00ff41] p-4">
+                <div className="text-[10px] text-[#00ff41] font-mono font-bold mb-2">REAL-LIFE EXAMPLE</div>
+                <p className="text-[14px] text-zinc-400 font-sans">{stage.example}</p>
+              </div>
+              <div className="bg-[#111] border-l-4 border-[#00ffff] p-4">
+                <div className="text-[10px] text-[#00ffff] font-mono font-bold mb-2">THINK ABOUT IT</div>
+                <p className="text-[14px] text-zinc-400 font-sans italic">{stage.question}</p>
+              </div>
+            </div>
+          )}
+
+          {viewMode === 'deep' && (
+            <div className="space-y-4">
+              <div className="text-[10px] text-[#ff3b30] font-mono font-bold mb-2">ADVANCED DETAILS</div>
+              <p className="text-[14px] text-zinc-300 leading-relaxed font-sans whitespace-pre-line">{stage.deep}</p>
+            </div>
+          )}
+
+          {viewMode === 'quiz' && (
+            <div className="space-y-4">
+              <div className="text-[10px] text-[#ff3b30] font-mono font-bold mb-2">SELF-ASSESSMENT</div>
+              <p className="text-[16px] text-white font-sans font-bold mb-4">{stage.question}</p>
+              <p className="text-[13px] text-zinc-500 font-sans italic">Think about this question carefully. There is no single right answer — the goal is to develop your civic thinking skills. Discuss with your teacher or classmates!</p>
+            </div>
+          )}
+
+          {/* Navigation */}
+          <div className="flex justify-between mt-8 pt-6 border-t border-[#222]">
+            <button onClick={() => { setActiveStage(Math.max(0, activeStage - 1)); setViewMode('simple'); }} disabled={activeStage === 0} className={`px-6 py-2 font-mono text-[12px] font-black tracking-widest uppercase border-2 ${activeStage === 0 ? 'border-[#222] text-zinc-700' : 'border-[#ff3b30] text-[#ff3b30] hover:bg-[#ff3b30] hover:text-black'}`}>← Previous</button>
+            <div className="text-[11px] text-zinc-600 font-mono">Stage {activeStage + 1} of 7</div>
+            <button onClick={() => { setActiveStage(Math.min(6, activeStage + 1)); setViewMode('simple'); }} disabled={activeStage === 6} className={`px-6 py-2 font-mono text-[12px] font-black tracking-widest uppercase border-2 ${activeStage === 6 ? 'border-[#222] text-zinc-700' : 'border-[#00ff41] text-[#00ff41] hover:bg-[#00ff41] hover:text-black'}`}>Next →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+// -------------------------------------------------------------
 // Main App Component
 // -------------------------------------------------------------
 function App() {
@@ -582,13 +710,13 @@ function App() {
             <span className="ml-3 text-[10px] border border-[#ff3b30] text-[#ff3b30] px-1.5 py-0.5 tracking-tighter">v4.0_CMD</span>
           </div>
           <nav className="hidden md:flex flex-1 ml-8 h-full">
-            {['home', 'process', 'myths', 'faq', 'library'].map((sec) => (
+            {['home', 'journey', 'process', 'myths', 'faq', 'library'].map((sec) => (
               <button 
                 key={sec}
-                className={`block px-6 h-full text-[13px] font-black font-mono transition-colors tracking-widest uppercase border-x-2 border-[#111] -ml-[2px] ${activeSection === sec ? 'bg-[#ff3b30] text-black' : 'text-zinc-500 hover:bg-[#111] hover:text-white'}`}
+                className={`block px-4 h-full text-[12px] font-black font-mono transition-colors tracking-widest uppercase border-x-2 border-[#111] -ml-[2px] ${activeSection === sec ? 'bg-[#ff3b30] text-black' : 'text-zinc-500 hover:bg-[#111] hover:text-white'}`}
                 onClick={() => setActiveSection(sec)}
               >
-                {sec === 'home' ? 'Sys.Overview' : sec === 'process' ? 'Mechanics' : sec === 'myths' ? 'Fact Matrix' : sec === 'faq' ? 'AI Terminal' : 'Library'}
+                {sec === 'home' ? 'Dashboard' : sec === 'journey' ? 'Journey' : sec === 'process' ? 'Gov. Structure' : sec === 'myths' ? 'Fact Check' : sec === 'faq' ? 'AI Terminal' : 'Library'}
               </button>
             ))}
           </nav>
@@ -615,6 +743,12 @@ function App() {
                 ))}
               </div>
             </div>
+          </section>
+        )}
+
+        {activeSection === 'journey' && (
+          <section className="animate-fade-in">
+            <ElectionJourney />
           </section>
         )}
 
