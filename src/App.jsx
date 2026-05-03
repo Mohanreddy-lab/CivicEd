@@ -1,7 +1,11 @@
 import { useState, useRef, useEffect, memo, useCallback } from 'react'
 import { factCheckDB, knowledgeBase, refusalTopics } from './data'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { initGemini, askGemini, CIVICED_SYSTEM_PROMPT } from './services/gemini'
 import './App.css'
+
+// Initialize Google Gemini AI (set your API key via environment variable)
+const geminiModel = initGemini(import.meta.env.VITE_GEMINI_API_KEY || '');
 
 // -------------------------------------------------------------
 // Telemetry Ticker
@@ -164,17 +168,35 @@ const ChatTerminal = memo(() => {
     setChatInput('');
     setIsProcessing(true);
     
-    // Simulate Async API Request to an LLM
-    setTimeout(() => {
-      const response = getBotResponse(rawText);
+    // Simulate Async API Request — tries Gemini first, falls back to offline
+    const processResponse = async () => {
+      const offlineResponse = getBotResponse(rawText);
       
-      if (response === 'CLEAR_CMD') {
+      if (offlineResponse === 'CLEAR_CMD') {
         setChatMessages([{ id: Date.now(), role: 'bot', text: 'Terminal history wiped. System ready.', isTyping: true }]);
+        setIsProcessing(false);
+        return;
+      }
+
+      // If we have an offline match (not fallback), use it immediately
+      if (!offlineResponse.startsWith('Great question!')) {
+        setChatMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', text: offlineResponse, isTyping: true }]);
+        setIsProcessing(false);
+        return;
+      }
+
+      // Try Google Gemini AI for unknown queries
+      const geminiResponse = await askGemini(geminiModel, rawText);
+      if (geminiResponse) {
+        const timestamped = geminiResponse + '<br><br><span style="color:#555;font-size:11px">Source: Google Gemini AI | ' + new Date().toLocaleString() + '</span>';
+        setChatMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', text: timestamped, isTyping: true }]);
       } else {
-        setChatMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', text: response, isTyping: true }]);
+        setChatMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', text: offlineResponse, isTyping: true }]);
       }
       setIsProcessing(false);
-    }, 1200); // Simulated network latency
+    };
+
+    setTimeout(() => processResponse(), 800);
   };
 
   return (
