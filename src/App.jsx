@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect, memo } from 'react'
+import { useState, useRef, useEffect, memo, useCallback } from 'react'
 import { factCheckDB, knowledgeBase, refusalTopics } from './data'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import './App.css'
 
 // -------------------------------------------------------------
@@ -280,20 +281,27 @@ const FactCheck = memo(() => {
         </div>
         
         {isParsing && (
-          <div className="mt-8 border-2 border-[#ff3b30] p-6 bg-[#111] relative overflow-hidden">
+          <div className="mt-8 border-2 border-[#ff3b30] p-6 bg-[#111] relative overflow-hidden" role="status" aria-label="Analyzing claim">
              <div className="absolute inset-0 bg-[#ff3b30]/10 animate-pulse"></div>
-             <div className="text-[12px] tracking-[0.2em] text-[#ff3b30] font-black font-mono relative z-10">ANALYZING CLAIM VECTORS...</div>
+             <div className="text-[12px] tracking-[0.2em] text-[#ff3b30] font-black font-mono relative z-10 mb-4">LIVE MISINFORMATION CHECK IN PROGRESS...</div>
+             <div className="space-y-2 relative z-10 font-mono text-[11px]">
+               <div className="flex items-center gap-3 text-[#00ff41]"><span>✓</span> Step 1: Parsing claim structure...</div>
+               <div className="flex items-center gap-3 text-[#00ffff] animate-pulse"><span>⟳</span> Step 2: Cross-referencing fact-check databases...</div>
+               <div className="flex items-center gap-3 text-zinc-600"><span>○</span> Step 3: Classifying accuracy & generating report...</div>
+             </div>
              <div className="h-2 w-full bg-[#000] mt-4 relative z-10">
                 <div className="h-full bg-[#ff3b30] animate-progress"></div>
              </div>
+             <div className="text-[9px] text-zinc-600 font-mono mt-3 relative z-10">⚠ DATA_DISCLAIMER: Classification based on cached knowledge. Last updated: {new Date().toLocaleString()}</div>
           </div>
         )}
 
         {fcResult && !isParsing && (
           <div className="mt-8 border-2 border-[#333] p-8 bg-[#000]">
-              <div className="text-[12px] tracking-[0.2em] text-[#ff3b30] mb-4 font-black font-mono">
+              <div className="text-[12px] tracking-[0.2em] text-[#ff3b30] mb-2 font-black font-mono">
                 {fcResult.verdict === 'INSUFFICIENT DATA' ? 'SYSTEM DIAGNOSTIC' : 'VERIFIED OUTPUT'}
               </div>
+              <div className="text-[9px] text-zinc-600 font-mono mb-4">Retrieved: {fcResult.timestamp} | Source: CivicEd Fact-Check DB (Cached)</div>
               <div className="text-[20px] font-bold text-white mb-6 bg-[#111] p-4 border-l-4 border-zinc-700 font-mono italic">
                 "{fcResult.claim}"
               </div>
@@ -328,69 +336,152 @@ const FactCheck = memo(() => {
 });
 
 // -------------------------------------------------------------
-// Live Command Dashboard Component
+// Real-Time Dashboard Component
 // -------------------------------------------------------------
-const CommandDashboard = memo(() => {
-  const [logs, setLogs] = useState([]);
+const SIMULATED_NEWS = [
+  { id: 1, headline: 'Election Commission Announces Schedule for Upcoming State Assembly Elections', source: 'ECI Official', category: 'BREAKING' },
+  { id: 2, headline: 'Voter Registration Deadline Extended by 15 Days in 3 States', source: 'Govt. Gazette', category: 'UPDATE' },
+  { id: 3, headline: 'New VVPAT Machines to be Deployed Across 200 Constituencies', source: 'Tech Bureau', category: 'SECURITY' },
+  { id: 4, headline: 'Supreme Court Rules on Transparency of Electoral Bonds Data', source: 'Judiciary Wire', category: 'LEGAL' },
+  { id: 5, headline: 'Youth Voter Turnout Hits Record High in Municipal Polls', source: 'Civic Data Lab', category: 'STATS' },
+];
+
+const TURNOUT_DATA = [
+  { region: 'North', turnout: 67, fill: '#ff3b30' },
+  { region: 'South', turnout: 72, fill: '#00ff41' },
+  { region: 'East', turnout: 58, fill: '#00ffff' },
+  { region: 'West', turnout: 65, fill: '#ff3b30' },
+  { region: 'Central', turnout: 71, fill: '#00ff41' },
+];
+
+const CIVIC_EVENTS = [
+  { date: 'May 10', title: 'Last Date: Voter ID Corrections', status: 'URGENT' },
+  { date: 'May 15', title: 'Mock Poll & EVM Testing (Public)', status: 'UPCOMING' },
+  { date: 'May 20', title: 'Phase 1 Polling Day', status: 'SCHEDULED' },
+  { date: 'Jun 01', title: 'Phase 2 Polling Day', status: 'SCHEDULED' },
+];
+
+const RealTimeDashboard = memo(() => {
+  const [newsIndex, setNewsIndex] = useState(0);
+  const [dataTimestamp, setDataTimestamp] = useState(new Date().toLocaleString());
+  const [quickAsk, setQuickAsk] = useState('');
+  const [quickAnswer, setQuickAnswer] = useState(null);
 
   useEffect(() => {
-    const messages = [
-      "Voter reg ping: region_alpha ok",
-      "Network latency nominal",
-      "Tabulation sync initialized",
-      "Audit trail verifiable",
-      "No anomalies detected in segment 4",
-      "Security protocol 8 active"
-    ];
-
-    const int = setInterval(() => {
-      setLogs(prev => {
-        const newLog = `[${new Date().toISOString().split('T')[1].substring(0, 8)}] SYS_EVENT: ${messages[Math.floor(Math.random() * messages.length)]}`;
-        return [newLog, ...prev].slice(0, 8);
-      });
-    }, 2500);
-
-    return () => clearInterval(int);
+    const interval = setInterval(() => {
+      setNewsIndex(prev => (prev + 1) % SIMULATED_NEWS.length);
+      setDataTimestamp(new Date().toLocaleString());
+    }, 5000);
+    return () => clearInterval(interval);
   }, []);
 
-  return (
-    <div className="border-4 border-[#111] p-10 bg-[#000] shadow-[12px_12px_0px_#ff3b30] mb-16 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-[#ff3b30] opacity-5 blur-[100px] rounded-full"></div>
-      <div className="relative z-10 flex flex-col md:flex-row gap-10">
-        
-        {/* Left Column: Hero */}
-        <div className="flex-1">
-          <div className="text-[13px] tracking-[0.2em] text-[#ff3b30] mb-6 font-black font-mono bg-[#111] inline-block px-3 py-1">SYS.BOOT_SUCCESS // V3.0</div>
-          <h1 className="text-5xl md:text-7xl font-black leading-[0.9] tracking-tighter mb-8 text-white uppercase">
-            Data Over<br/><span className="text-[#ff3b30]">Rhetoric.</span>
-          </h1>
-          <p className="text-[16px] text-zinc-400 mb-8 leading-relaxed font-mono max-w-[400px]">
-            Civic education terminal expanded. New modules: Security Audits, Tabulation Processing, and Command Level AI.
-          </p>
-          <div className="grid grid-cols-2 gap-4 font-mono mb-6">
-            <div className="bg-[#111] p-4 border-l-4 border-[#00ff41]">
-               <div className="text-zinc-500 text-[10px] tracking-widest mb-1">SYSTEM THREAT LEVEL</div>
-               <div className="text-[#00ff41] text-2xl font-black">ZERO</div>
-            </div>
-            <div className="bg-[#111] p-4 border-l-4 border-[#ff3b30]">
-               <div className="text-zinc-500 text-[10px] tracking-widest mb-1">DATA INTEGRITY</div>
-               <div className="text-[#ff3b30] text-2xl font-black">100%</div>
-            </div>
-          </div>
-        </div>
+  const handleQuickAsk = useCallback(() => {
+    if (!quickAsk.trim()) return;
+    const lower = quickAsk.toLowerCase();
+    let answer = 'I don\'t have a quick answer for that. Try the AI Terminal for a detailed response.';
+    if (lower.includes('vote') || lower.includes('election')) answer = 'Elections are the process by which citizens choose their representatives through a secret ballot. Navigate to "Mechanics" for a full breakdown of Local, State, and National elections.';
+    if (lower.includes('register')) answer = 'To register to vote, you must be 18+ years old and a citizen. Visit your local election commission office or their official website to submit Form 6.';
+    if (lower.includes('evm') || lower.includes('machine')) answer = 'EVMs (Electronic Voting Machines) are standalone, battery-powered devices not connected to any network. Each vote also generates a VVPAT slip for paper verification.';
+    setQuickAnswer({ q: quickAsk, a: answer, time: new Date().toLocaleTimeString() });
+    setQuickAsk('');
+  }, [quickAsk]);
 
-        {/* Right Column: Live Logs */}
-        <div className="flex-1 border-2 border-[#222] bg-[#050505] p-4 flex flex-col">
-          <div className="text-[10px] tracking-[0.2em] text-zinc-500 mb-4 font-bold font-mono border-b-2 border-[#111] pb-2 uppercase">
-            Live Feed Diagnostics
-          </div>
-          <div className="flex-1 font-mono text-[12px] text-[#00ff41] flex flex-col gap-2 overflow-hidden opacity-80">
-            {logs.length === 0 ? <span className="animate-pulse">Awaiting data stream...</span> : logs.map((log, i) => (
-              <div key={i} className={i === 0 ? "text-white font-bold" : ""}>{log}</div>
+  const currentNews = SIMULATED_NEWS[newsIndex];
+
+  return (
+    <div className="border-4 border-[#111] bg-[#000] shadow-[12px_12px_0px_#ff3b30] mb-16 relative overflow-hidden" role="region" aria-label="Real-Time Civic Dashboard">
+      <div className="absolute top-0 right-0 w-64 h-64 bg-[#ff3b30] opacity-5 blur-[100px] rounded-full"></div>
+      
+      {/* Dashboard Header */}
+      <div className="border-b-2 border-[#222] p-6 flex justify-between items-center relative z-10">
+        <div>
+          <div className="text-[13px] tracking-[0.2em] text-[#ff3b30] font-black font-mono bg-[#111] inline-block px-3 py-1">REAL-TIME DASHBOARD // V5.0</div>
+          <h1 className="text-4xl md:text-6xl font-black leading-[0.9] tracking-tighter mt-4 text-white uppercase">
+            Live<br/><span className="text-[#ff3b30]">Telemetry.</span>
+          </h1>
+        </div>
+        <div className="hidden md:block text-right">
+          <div className="text-[10px] text-zinc-600 font-mono">LAST_SYNC</div>
+          <div className="text-[12px] text-[#00ff41] font-mono font-bold">{dataTimestamp}</div>
+          <div className="text-[10px] text-zinc-600 font-mono mt-1">SOURCE: SIMULATED_API</div>
+        </div>
+      </div>
+
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2">
+        
+        {/* News Feed */}
+        <div className="p-6 border-b-2 lg:border-b-0 lg:border-r-2 border-[#222]" role="feed" aria-label="Election News Feed">
+          <div className="text-[10px] tracking-[0.2em] text-zinc-500 mb-4 font-bold font-mono border-b border-[#222] pb-2 uppercase">Live Election News Feed</div>
+          <div className="space-y-3">
+            {SIMULATED_NEWS.map((news, i) => (
+              <div key={news.id} className={`flex items-start gap-3 p-3 border-l-2 transition-all duration-500 ${i === newsIndex ? 'border-[#ff3b30] bg-[#111]' : 'border-[#222] opacity-50'}`}>
+                <span className={`text-[9px] font-mono font-black tracking-widest px-2 py-0.5 shrink-0 mt-0.5 ${news.category === 'BREAKING' ? 'bg-[#ff3b30] text-black' : news.category === 'UPDATE' ? 'bg-[#00ff41] text-black' : 'bg-[#333] text-zinc-400'}`}>{news.category}</span>
+                <div>
+                  <div className={`text-[13px] font-sans leading-snug ${i === newsIndex ? 'text-white font-bold' : 'text-zinc-500'}`}>{news.headline}</div>
+                  <div className="text-[10px] text-zinc-600 font-mono mt-1">{news.source} • {dataTimestamp}</div>
+                </div>
+              </div>
             ))}
           </div>
         </div>
 
+        {/* Right Column: Chart + Events */}
+        <div className="flex flex-col">
+          {/* Voter Turnout Chart */}
+          <div className="p-6 border-b-2 border-[#222]" role="img" aria-label="Voter Turnout Bar Chart">
+            <div className="text-[10px] tracking-[0.2em] text-zinc-500 mb-4 font-bold font-mono border-b border-[#222] pb-2 uppercase">Regional Voter Turnout (%)</div>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={TURNOUT_DATA} barSize={30}>
+                <XAxis dataKey="region" tick={{ fill: '#71717a', fontSize: 11, fontFamily: 'monospace' }} axisLine={{ stroke: '#333' }} tickLine={false} />
+                <YAxis tick={{ fill: '#71717a', fontSize: 10, fontFamily: 'monospace' }} axisLine={false} tickLine={false} domain={[0, 100]} />
+                <Tooltip contentStyle={{ background: '#111', border: '2px solid #333', fontFamily: 'monospace', fontSize: 12 }} labelStyle={{ color: '#ff3b30' }} />
+                <Bar dataKey="turnout" radius={[0, 0, 0, 0]}>
+                  {TURNOUT_DATA.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="text-[9px] text-zinc-600 font-mono mt-2">⚠ DATA_DISCLAIMER: Simulated data for educational demonstration. Not real-time.</div>
+          </div>
+
+          {/* Civic Events */}
+          <div className="p-6" role="list" aria-label="Upcoming Civic Events">
+            <div className="text-[10px] tracking-[0.2em] text-zinc-500 mb-4 font-bold font-mono border-b border-[#222] pb-2 uppercase">Upcoming Civic Events & Deadlines</div>
+            {CIVIC_EVENTS.map((evt, i) => (
+              <div key={i} className="flex items-center justify-between py-2.5 border-b border-[#111] last:border-b-0" role="listitem">
+                <div className="flex items-center gap-3">
+                  <span className="text-[12px] text-[#ff3b30] font-mono font-black w-[60px]">{evt.date}</span>
+                  <span className="text-[13px] text-zinc-300 font-sans">{evt.title}</span>
+                </div>
+                <span className={`text-[9px] font-mono font-black tracking-widest px-2 py-0.5 ${evt.status === 'URGENT' ? 'bg-[#ff3b30] text-black' : evt.status === 'UPCOMING' ? 'border border-[#00ff41] text-[#00ff41]' : 'border border-zinc-600 text-zinc-500'}`}>{evt.status}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Ask Bar */}
+      <div className="border-t-2 border-[#222] p-4 bg-[#050505] relative z-10" role="search" aria-label="Quick Question Box">
+        <div className="text-[10px] tracking-[0.2em] text-zinc-600 mb-2 font-bold font-mono uppercase">Quick Ask — Instant Civic Q&A</div>
+        <div className="flex gap-0">
+          <input
+            type="text"
+            className="flex-1 bg-[#000] border-2 border-[#333] border-r-0 text-[#00ff41] font-mono text-[13px] px-4 py-3 outline-none focus:border-[#ff3b30] placeholder-zinc-700"
+            placeholder="> Ask a quick civic question..."
+            value={quickAsk}
+            onChange={(e) => setQuickAsk(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleQuickAsk()}
+            aria-label="Quick civic question input"
+          />
+          <button className="px-6 py-3 font-mono text-[12px] font-black tracking-widest uppercase bg-[#ff3b30] text-black border-2 border-[#ff3b30] hover:bg-white hover:border-white transition-colors" onClick={handleQuickAsk}>ASK</button>
+        </div>
+        {quickAnswer && (
+          <div className="mt-3 p-4 bg-[#111] border-l-4 border-[#00ff41] text-[13px] text-zinc-300 font-sans leading-relaxed" role="alert">
+            <div className="text-[9px] text-zinc-600 font-mono mb-2">RESPONSE @ {quickAnswer.time} — CACHED_KNOWLEDGE</div>
+            {quickAnswer.a}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -484,7 +575,7 @@ function App() {
         {activeSection === 'home' && (
           <section className="animate-fade-in">
             <div className="max-w-[1140px] mx-auto px-6">
-              <CommandDashboard />
+              <RealTimeDashboard />
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border-2 border-[#111] bg-[#000]">
                 {[
