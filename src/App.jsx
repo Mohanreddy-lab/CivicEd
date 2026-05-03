@@ -111,25 +111,49 @@ const ChatTerminal = memo(() => {
     
     // System Commands
     if (lower === '/clear') return 'CLEAR_CMD';
-    if (lower === '/help') return '<strong>SYSTEM COMMANDS:</strong><br>/help - Show this menu<br>/status - Display system diagnostics<br>/clear - Wipe terminal history';
-    if (lower === '/status') return '<strong>SYSTEM DIAGNOSTICS:</strong><br>AI_CORE: ONLINE<br>NEUTRALITY_LOCK: ENGAGED<br>LIVE_DATA_FEED: DISCONNECTED (Simulated Mode)<br>LATENCY: 42ms';
+    if (lower === '/help') return '<strong>SYSTEM COMMANDS:</strong><br>/help - Show this menu<br>/status - Display system diagnostics<br>/clear - Wipe terminal history<br><br><strong>TOPICS I CAN EXPLAIN:</strong><br>• elections, voting, democracy<br>• civic rights & duties<br>• fake news / misinformation<br>• secret ballot, EVMs<br>• mayor, MLA, MP roles<br>• how laws are made';
+    if (lower === '/status') return '<strong>SYSTEM DIAGNOSTICS:</strong><br>AI_CORE: ONLINE<br>NEUTRALITY_LOCK: ENGAGED<br>KNOWLEDGE_DB: 24 Topics Loaded<br>LIVE_DATA_FEED: SIMULATED<br>LAST_SYNC: ' + new Date().toLocaleString();
 
     if (refusalTopics.some(t => lower.includes(t))) {
-      return `[SECURITY OVERRIDE]\nI am designed strictly for <strong>election process education</strong>.<br><br>I cannot suggest how to vote, recommend any party or candidate, or express any political opinion. Your vote is your private decision.`;
+      return `I appreciate your question, but I'm designed strictly for <strong>education only</strong>.<br><br>I cannot:<br>• Suggest how to vote<br>• Recommend any party or candidate<br>• Express political opinions<br><br>Your vote is your private decision. I can help you understand <em>how voting works</em> instead!`;
     }
     
+    // Civics & Democracy
+    if (lower.includes('what is civic') || lower.includes('civics')) return '<strong>What is Civics?</strong><br><br>Civics is the study of how people live together in a society and how governments work.<br><br>It teaches us:<br>• Our <strong>rights</strong> (what we can do)<br>• Our <strong>duties</strong> (what we should do)<br>• How <strong>leaders are chosen</strong><br>• How <strong>laws are made</strong><br><br><em>Think of it like the rulebook for how a country runs!</em>';
+    if (lower.includes('democracy') || lower.includes('democratic')) return '<strong>What is Democracy?</strong><br><br>Democracy means "rule by the people." In a democracy:<br><br>• <strong>People choose their leaders</strong> through elections<br>• <strong>Everyone is equal</strong> before the law<br>• <strong>Freedom of speech</strong> is protected<br>• The government works <strong>for the people</strong><br><br><em>Simple example:</em> When your class votes to pick a monitor, that\'s democracy in action!';
+    
+    // Elections & Voting
+    if (lower.includes('what is election') || lower.includes('what is an election')) return '<strong>What is an Election?</strong><br><br>An election is when people <strong>vote to choose their leaders</strong>.<br><br><strong>Step by step:</strong><br>1. Candidates announce they want to lead<br>2. They explain their plans to the public<br>3. On voting day, people go to polling stations<br>4. Each person marks their choice on a ballot (secretly)<br>5. Votes are counted<br>6. The candidate with the most votes wins<br><br><em>It\'s like choosing a team captain, but for your city, state, or country!</em>';
+    if (lower.includes('how to vote') || lower.includes('voting process') || lower.includes('how voting works')) return '<strong>How Does Voting Work?</strong><br><br>1. <strong>Check your name</strong> on the voter list<br>2. <strong>Go to your polling station</strong> on election day<br>3. <strong>Show your voter ID</strong> to the officials<br>4. <strong>Get your finger marked</strong> with ink (so you can\'t vote twice)<br>5. <strong>Go behind the curtain</strong> to the voting machine<br>6. <strong>Press the button</strong> next to your chosen candidate<br>7. <strong>Done!</strong> Your vote is secret and safe<br><br><em>The whole process takes about 5 minutes.</em>';
+    if (lower.includes('who can vote') || lower.includes('eligible') || lower.includes('voting age')) return '<strong>Who Can Vote?</strong><br><br>To vote, you must:<br>• Be <strong>18 years or older</strong><br>• Be a <strong>citizen</strong> of the country<br>• Have a <strong>valid voter ID</strong><br>• Be <strong>registered</strong> on the voter list<br><br><em>If you\'re under 18, you can\'t vote yet — but learning about it now makes you a smarter future voter!</em>';
+    if (lower.includes('register') || lower.includes('registration') || lower.includes('voter id')) return '<strong>How to Register to Vote</strong><br><br>1. Visit your <strong>local election office</strong> or their website<br>2. Fill out <strong>Form 6</strong> (voter registration form)<br>3. Attach your <strong>ID proof</strong> and <strong>address proof</strong><br>4. Submit the form<br>5. An official may visit your address to verify<br>6. You receive your <strong>Voter ID card</strong>!<br><br><em>You can also register online through the Election Commission website.</em>';
+    
+    // Rights & Duties
+    if (lower.includes('right') || lower.includes('duty') || lower.includes('duties')) return '<strong>Your Rights & Duties as a Citizen</strong><br><br><strong>Your Rights:</strong><br>• Right to <strong>vote</strong> freely<br>• Right to <strong>safety</strong> at polling stations<br>• Right to <strong>information</strong> about candidates<br>• Right to a <strong>secret ballot</strong><br><br><strong>Your Duties:</strong><br>• <strong>Follow the law</strong><br>• <strong>Respect others\' opinions</strong><br>• <strong>Stay informed</strong> about civic issues<br>• <strong>Report problems</strong> honestly<br><br><em>Rights and duties go together — like two sides of a coin!</em>';
+    
+    // Fake News
+    if (lower.includes('fake news') || lower.includes('misinformation') || lower.includes('false info')) return '<strong>How to Spot Fake News</strong><br><br>Fake news is <strong>false information</strong> that looks real. It spreads fast on social media.<br><br><strong>How to check if news is real:</strong><br>1. <strong>Check the source</strong> — Is it from a trusted website?<br>2. <strong>Check the date</strong> — Is it recent or old?<br>3. <strong>Read the full article</strong> — Headlines can be misleading<br>4. <strong>Ask a trusted adult</strong> or teacher<br>5. <strong>Search for the same news</strong> on other trusted sites<br><br>⚠️ <em>Always check before you share!</em>';
+    
+    // How laws are made
+    if (lower.includes('law') || lower.includes('legislation') || lower.includes('bill')) return '<strong>How a Law is Made (Simply!)</strong><br><br>1. <strong>Someone has an idea</strong> — "We need a new rule"<br>2. <strong>It\'s written down</strong> as a "Bill"<br>3. <strong>Parliament discusses it</strong> — Is this a good idea?<br>4. <strong>Members vote</strong> — More than half must agree<br>5. <strong>The President signs it</strong> — Now it\'s an official law!<br><br><em>Example: If Parliament decides all schools should have libraries, they write a bill, debate it, vote, and it becomes law.</em>';
+    
+    // EVM
+    if (lower.includes('evm') || lower.includes('machine') || lower.includes('electronic')) return '<strong>What is an EVM?</strong><br><br>EVM stands for <strong>Electronic Voting Machine</strong>. It\'s the machine you press to cast your vote.<br><br><strong>Key facts:</strong><br>• It runs on <strong>batteries</strong> (no internet needed)<br>• It is <strong>NOT connected</strong> to any network<br>• Each vote also prints a <strong>paper slip (VVPAT)</strong> for backup<br>• It can only record <strong>5 votes per minute</strong> to prevent fraud<br><br><em>EVMs make voting faster, easier, and more accurate than paper ballots.</em>';
+    
+    // Existing knowledge base
     if (lower.includes('gerrymandering')) return knowledgeBase.gerrymandering.a;
     if (lower.includes('electoral college')) return knowledgeBase.electoralcollege.a;
-    if (lower.includes('municipal') || lower.includes('corporator')) return knowledgeBase.municipal.a;
+    if (lower.includes('municipal') || lower.includes('corporator') || lower.includes('mayor')) return knowledgeBase.municipal.a;
     if (lower.includes('chief minister') || lower.includes('cm') || lower.includes('mla')) return knowledgeBase.cm_selection.a;
     if (lower.includes('count') || lower.includes('tabulat')) return knowledgeBase.counting.a;
     if (lower.includes('security') || lower.includes('paper') || lower.includes('vvpat')) return knowledgeBase.security.a;
-    if (lower.includes('secret') || lower.includes('private')) {
-      return `<strong>The Secret Ballot</strong><br><br>The secret ballot is a cornerstone of modern democracy. It means:<br>• <strong>Your vote is private.</strong> No record links your name to your specific vote.<br>• <strong>No one can demand to know</strong> how you voted.`;
+    if (lower.includes('secret') || lower.includes('private') || lower.includes('ballot')) {
+      return `<strong>The Secret Ballot</strong><br><br>Your vote is <strong>completely private</strong>. This is called the "secret ballot."<br><br>• <strong>No one can see</strong> who you voted for<br>• <strong>No one can force you</strong> to tell them<br>• The machine does <strong>not save your name</strong> with your vote<br><br><em>This protects you from pressure. You vote with your heart, not with fear.</em>`;
     }
+    if (lower.includes('mp') || lower.includes('parliament') || lower.includes('prime minister')) return 'A <strong>Member of Parliament (MP)</strong> represents your area in the national government. MPs debate national issues, pass laws, and approve the country\'s budget.<br><br>The party with the most MPs forms the government, and their leader becomes the <strong>Prime Minister</strong> — the head of the country\'s government.';
     
-    return `Query logged. While I don't have a specific pre-loaded module for this topic, here is how to get accurate information:<br><br>1. <strong>Official source:</strong> Your national or local election commission website<br>2. <strong>Civic organizations:</strong> Non-partisan groups like the League of Women Voters<br><br>Try typing <code>/help</code> or asking about <em>ballot counting</em> or <em>election security.</em>`;
-  };
+    return `Great question! I don't have a specific lesson on that topic yet, but here's how to learn more:<br><br>1. <strong>Ask your teacher</strong> — They can explain it in context<br>2. <strong>Visit your Election Commission website</strong> — Official and trusted<br>3. <strong>Try the Mechanics tab</strong> above for government structure<br><br>Or try asking me about: <em>elections, voting, democracy, rights, fake news, or how laws are made!</em>`;  };
+
 
   const handleSendChat = () => {
     if (!chatInput.trim() || isProcessing) return;
